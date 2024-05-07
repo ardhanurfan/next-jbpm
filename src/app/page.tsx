@@ -1,10 +1,11 @@
 "use client";
 
-import { fetchTaskInstances } from "@/utils";
-import { useEffect, useState } from "react";
+import { fetchTaskInstances, startTaskInstance, submitForm } from "@/utils";
+import { FormEvent, useEffect, useState } from "react";
 
 export default function Home() {
   const [taskInstances, setTaskInstances] = useState<TaskInstance[]>([]);
+  const [name, setName] = useState("");
 
   useEffect(() => {
     getTaskInstances();
@@ -15,66 +16,138 @@ export default function Home() {
     setTaskInstances(data["task-summary"]);
   };
 
+  const handleStart = async (containerId: string, taskInstanceId: number) => {
+    await startTaskInstance(containerId, taskInstanceId);
+    await getTaskInstances();
+  };
+
+  const handleSubmit = async (
+    e: FormEvent<HTMLFormElement>,
+    containerId: string,
+    taskInstanceId: number
+  ) => {
+    e.preventDefault();
+    await submitForm(containerId, taskInstanceId, name);
+    await getTaskInstances();
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center p-24 bg-gradient-to-br from-blue-400 to-indigo-600 text-white">
-      <h1 className="text-3xl font-bold mb-8">jBPM Integration Test</h1>
+    <main className="flex min-h-screen flex-col items-center p-8 bg-gradient-to-br from-blue-400 to-indigo-600 text-white">
+      <h1 className="text-4xl font-bold mb-8">jBPM Integration Test</h1>
       {taskInstances.length > 0 ? (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {taskInstances.map((taskInstance) => (
             <div
               key={taskInstance["task-id"]}
               className="bg-gray-800 text-white rounded-lg shadow-lg p-6"
             >
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-xl font-semibold mb-4">
                 Task Name: {taskInstance["task-name"]}
               </h2>
-              <p className="text-gray-400">
-                Task Description: {taskInstance["task-description"]}
+              <p>
+                <span className="font-semibold">Correlation Key:</span>{" "}
+                {taskInstance["correlation-key"]}
               </p>
-              <p className="text-gray-400">
-                Assigned To: {taskInstance["task-actual-owner"]}
+              <p>
+                <span className="font-semibold">Process Type:</span>{" "}
+                {taskInstance["process-type"]}
               </p>
-              <p className="text-gray-400">
-                Status: {taskInstance["task-status"]}
+              <p>
+                <span className="font-semibold">Actual Owner:</span>{" "}
+                {taskInstance["task-actual-owner"]}
               </p>
-              <p className="text-gray-400">
-                Correlation Key: {taskInstance["correlation-key"]}
+              <p>
+                <span className="font-semibold">Container ID:</span>{" "}
+                {taskInstance["task-container-id"]}
               </p>
-              <p className="text-gray-400">
-                Process Type: {taskInstance["process-type"]}
+              <p>
+                <span className="font-semibold">Created By:</span>{" "}
+                {taskInstance["task-created-by"]}
               </p>
-              <p className="text-gray-400">
-                Task Container ID: {taskInstance["task-container-id"]}
+              <p>
+                <span className="font-semibold">Description:</span>{" "}
+                {taskInstance["task-description"]}
               </p>
-              <p className="text-gray-400">
-                Task Created By: {taskInstance["task-created-by"]}
+              <p>
+                <span className="font-semibold">Expiration Time:</span>{" "}
+                {taskInstance["task-expiration-time"]?.toString()}
               </p>
-              <p className="text-gray-400">
-                Task Expiration Time:
-                {taskInstance["task-expiration-time"]?.toDateString()}
+              <p>
+                <span className="font-semibold">Task ID:</span>{" "}
+                {taskInstance["task-id"]}
               </p>
-              <p className="text-gray-400">
-                Task ID: {taskInstance["task-id"]}
-              </p>
-              <p className="text-gray-400">
-                Task Is Skipable:{" "}
+              <p>
+                <span className="font-semibold">Is Skipable:</span>{" "}
                 {taskInstance["task-is-skipable"] ? "Yes" : "No"}
               </p>
-              <p className="text-gray-400">
-                Task Parent ID: {taskInstance["task-parent-id"]}
+              <p>
+                <span className="font-semibold">Parent ID:</span>{" "}
+                {taskInstance["task-parent-id"]}
               </p>
-              <p className="text-gray-400">
-                Task Priority: {taskInstance["task-priority"]}
+              <p>
+                <span className="font-semibold">Priority:</span>{" "}
+                {taskInstance["task-priority"]}
               </p>
-              <p className="text-gray-400">
-                Task Proc Definition ID: {taskInstance["task-proc-def-id"]}
+              <p>
+                <span className="font-semibold">Proc Definition ID:</span>{" "}
+                {taskInstance["task-proc-def-id"]}
               </p>
-              <p className="text-gray-400">
-                Task Proc Instance ID: {taskInstance["task-proc-inst-id"]}
+              <p>
+                <span className="font-semibold">Proc Instance ID:</span>{" "}
+                {taskInstance["task-proc-inst-id"]}
               </p>
-              <p className="text-gray-400">
-                Task Subject: {taskInstance["task-subject"]}
+              <p>
+                <span className="font-semibold">Task Status:</span>{" "}
+                {taskInstance["task-status"]}
               </p>
+              <p>
+                <span className="font-semibold">Task Subject:</span>{" "}
+                {taskInstance["task-subject"]}
+              </p>
+              {taskInstance["task-status"] === "Reserved" && (
+                <button
+                  className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={() =>
+                    handleStart(
+                      taskInstance["task-container-id"],
+                      taskInstance["task-id"]
+                    )
+                  }
+                >
+                  Start
+                </button>
+              )}
+              {taskInstance["task-status"] === "InProgress" && (
+                <form
+                  className="mt-4"
+                  onSubmit={(e) =>
+                    handleSubmit(
+                      e,
+                      taskInstance["task-container-id"],
+                      taskInstance["task-id"]
+                    )
+                  }
+                >
+                  <label
+                    htmlFor="name"
+                    className="block text-gray-300 font-semibold"
+                  >
+                    Name:
+                  </label>
+                  <input
+                    onChange={(e) => setName(e.target.value)}
+                    type="text"
+                    name="name"
+                    className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
+                  />
+                  <button
+                    type="submit"
+                    className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Submit
+                  </button>
+                </form>
+              )}
             </div>
           ))}
         </div>
