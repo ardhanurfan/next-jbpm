@@ -16,3 +16,12 @@ interface TaskInstance {
   "task-status": string;
   "task-subject": string;
 }
+
+interface ProcessDefinition {
+  "process-id": string;
+  "process-name": string;
+  "process-version": string;
+  package: string;
+  "container-id": string;
+  dynamic: boolean;
+}
