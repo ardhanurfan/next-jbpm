@@ -63,15 +63,34 @@ export default function Home() {
                 <span className="font-semibold">Dynamic:</span>{" "}
                 {definition.dynamic}
               </p>
-              {!isStart && (
-                <button
-                  className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={() => setIsStart(true)}
+              {definition["process-id"] == "BMI.BMI" ? (
+                <form
+                  onSubmit={(e) =>
+                    handleSubmit(
+                      e,
+                      definition["container-id"],
+                      definition["process-id"]
+                    )
+                  }
                 >
-                  Start
-                </button>
+                  <button
+                    className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    type="submit"
+                  >
+                    Start
+                  </button>
+                </form>
+              ) : (
+                !isStart && (
+                  <button
+                    className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => setIsStart(true)}
+                  >
+                    Start
+                  </button>
+                )
               )}
-              {isStart && (
+              {isStart && definition["process-id"] != "BMI.BMI" && (
                 <form
                   className="mt-4"
                   onSubmit={(e) =>

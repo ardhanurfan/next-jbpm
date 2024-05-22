@@ -53,7 +53,7 @@ export async function startTaskInstance(
 export async function submitForm(
   containerId: string,
   taskInstanceId: number,
-  name: string
+  data: any
 ) {
   const response = await fetch(
     `${localhost}/kie-server/services/rest/server/containers/${containerId}/tasks/${taskInstanceId}/states/completed`,
@@ -64,7 +64,7 @@ export async function submitForm(
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({ name: name }),
+      body: JSON.stringify(data),
     }
   );
 
@@ -116,6 +116,8 @@ export async function fetchDefinitions() {
   // Parse the response as JSON
   const result = await response.json();
 
+  console.log(result);
+
   if (response.ok) {
     return result;
   }
@@ -136,6 +138,36 @@ export async function fetchTaskDetail(
         "Content-Type": "application/json",
         Accept: "application/json",
       },
+    }
+  );
+
+  // Parse the response as JSON
+  const result = await response.json();
+
+  if (response.ok) {
+    return result;
+  }
+
+  throw result;
+}
+
+export async function fetchBMI(containerId: string, data: any) {
+  // Set the required headers for the API request
+  const response = await fetch(
+    `${localhost}/kie-server/services/rest/server/containers/${containerId}/dmn`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${encodedCredentials}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        "model-namespace":
+          "https://kiegroup.org/dmn/_DB91898C-0550-47E2-866B-3BC09B16C409",
+        "model-name": "BMI Formula",
+        "dmn-context": data,
+      }),
     }
   );
 

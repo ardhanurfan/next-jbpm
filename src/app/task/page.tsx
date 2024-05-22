@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  fetchBMI,
   fetchTaskDetail,
   fetchTaskInstances,
   startTaskInstance,
@@ -11,8 +12,12 @@ import { FormEvent, useEffect, useState } from "react";
 export default function Task() {
   const [taskInstances, setTaskInstances] = useState<TaskInstance[]>([]);
   const [name, setName] = useState("");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
   const [selected, setSelected] = useState(0);
   const [taskInput, setTaskInput] = useState("");
+  const [dataDetail, setDataDetail] = useState();
+  const [bmiResult, setBmiResult] = useState();
 
   useEffect(() => {
     getTaskInstances();
@@ -26,6 +31,14 @@ export default function Task() {
   const getDetail = async (containerId: string, taskInstanceId: number) => {
     const data = await fetchTaskDetail(containerId, taskInstanceId);
     setTaskInput(data["task-input-data"]["newName"]);
+    setDataDetail(data["task-output-data"]);
+    if (containerId === "BMI_1.0.0-SNAPSHOT") {
+      const bmi_data = data["task-output-data"];
+      const result = await fetchBMI(containerId, bmi_data);
+      setBmiResult(
+        result["result"]["dmn-evaluation-result"]["dmn-context"]["BMI"]
+      );
+    }
     setSelected(taskInstanceId);
   };
 
@@ -34,13 +47,28 @@ export default function Task() {
     await getTaskInstances();
   };
 
-  const handleSubmit = async (
+  const handleSubmitChangeName = async (
     e: FormEvent<HTMLFormElement>,
     containerId: string,
     taskInstanceId: number
   ) => {
     e.preventDefault();
-    await submitForm(containerId, taskInstanceId, name);
+    await submitForm(containerId, taskInstanceId, { name });
+    setSelected(0);
+    await getTaskInstances();
+  };
+
+  const handleSubmitBmi = async (
+    e: FormEvent<HTMLFormElement>,
+    containerId: string,
+    taskInstanceId: number
+  ) => {
+    e.preventDefault();
+    await submitForm(containerId, taskInstanceId, {
+      Height: height,
+      Weight: weight,
+    });
+    setSelected(0);
     await getTaskInstances();
   };
 
@@ -136,26 +164,65 @@ export default function Task() {
                     <form
                       className="mt-4"
                       onSubmit={(e) =>
-                        handleSubmit(
-                          e,
-                          taskInstance["task-container-id"],
-                          taskInstance["task-id"]
-                        )
+                        name != ""
+                          ? handleSubmitChangeName(
+                              e,
+                              taskInstance["task-container-id"],
+                              taskInstance["task-id"]
+                            )
+                          : handleSubmitBmi(
+                              e,
+                              taskInstance["task-container-id"],
+                              taskInstance["task-id"]
+                            )
                       }
                     >
-                      <label
-                        htmlFor="name"
-                        className="block text-gray-300 font-semibold"
-                      >
-                        Name:
-                      </label>
-                      <input
-                        onChange={(e) => setName(e.target.value)}
-                        type="text"
-                        name="name"
-                        defaultValue={taskInput}
-                        className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
-                      />
+                      {taskInstance["task-proc-def-id"] == "BMI.BMI" ? (
+                        <>
+                          <label
+                            htmlFor="height"
+                            className="block text-gray-300 font-semibold"
+                          >
+                            Height:
+                          </label>
+                          <input
+                            onChange={(e) => setHeight(e.target.value)}
+                            type="text"
+                            name="height"
+                            defaultValue={taskInput}
+                            className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
+                          />
+                          <label
+                            htmlFor="width"
+                            className="block text-gray-300 font-semibold"
+                          >
+                            Width:
+                          </label>
+                          <input
+                            onChange={(e) => setWeight(e.target.value)}
+                            type="text"
+                            name="width"
+                            defaultValue={taskInput}
+                            className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <label
+                            htmlFor="name"
+                            className="block text-gray-300 font-semibold"
+                          >
+                            Name:
+                          </label>
+                          <input
+                            onChange={(e) => setName(e.target.value)}
+                            type="text"
+                            name="name"
+                            defaultValue={taskInput}
+                            className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
+                          />
+                        </>
+                      )}
                       <button
                         type="submit"
                         className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
@@ -164,13 +231,17 @@ export default function Task() {
                       </button>
                     </form>
                   )}
+                  {taskInstance["task-status"] === "Completed" && (
+                    <p className="mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded">
+                      <pre>{JSON.stringify(dataDetail, null, 2)}</pre>
+                      <pre>{"BMI: " + bmiResult}</pre>
+                    </p>
+                  )}
                 </>
               )}
               <div className="flex justify-center">
-                {selected != taskInstance["task-id"] ||
-                taskInstance["task-status"] === "Completed" ? (
+                {selected != taskInstance["task-id"] ? (
                   <button
-                    disabled={taskInstance["task-status"] === "Completed"}
                     className="mt-4 bg-pink-500 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded disabled:bg-slate-500 disabled:hover:bg-slate-500"
                     onClick={() =>
                       getDetail(
@@ -183,7 +254,6 @@ export default function Task() {
                   </button>
                 ) : (
                   <button
-                    disabled={taskInstance["task-status"] === "Completed"}
                     className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded disabled:bg-slate-500 disabled:hover:bg-slate-500"
                     onClick={() => setSelected(0)}
                   >
