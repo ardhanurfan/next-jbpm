@@ -195,15 +195,15 @@ export default function Task() {
                             className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
                           />
                           <label
-                            htmlFor="width"
+                            htmlFor="weight"
                             className="block text-gray-300 font-semibold"
                           >
-                            Width:
+                            Weight:
                           </label>
                           <input
                             onChange={(e) => setWeight(e.target.value)}
                             type="text"
-                            name="width"
+                            name="weight"
                             defaultValue={taskInput}
                             className="w-full mt-1 p-2 rounded bg-gray-700 text-gray-300"
                           />

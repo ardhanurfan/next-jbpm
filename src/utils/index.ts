@@ -1,6 +1,6 @@
 const localhost = "http://localhost";
-export const username: string = "jack";
-const password: string = "jack";
+export const username: string = "katy";
+const password: string = "katy";
 const credentials = `${username}:${password}`;
 const encodedCredentials = btoa(credentials); // Encoding kredensial ke Base64
 
