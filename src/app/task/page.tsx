@@ -17,7 +17,7 @@ export default function Task() {
   const [selected, setSelected] = useState(0);
   const [taskInput, setTaskInput] = useState("");
   const [dataDetail, setDataDetail] = useState();
-  const [bmiResult, setBmiResult] = useState();
+  const [bmiResult, setBmiResult] = useState(null);
 
   useEffect(() => {
     getTaskInstances();
@@ -38,6 +38,8 @@ export default function Task() {
       setBmiResult(
         result["result"]["dmn-evaluation-result"]["dmn-context"]["BMI"]
       );
+    } else {
+      setBmiResult(null);
     }
     setSelected(taskInstanceId);
   };
@@ -234,7 +236,7 @@ export default function Task() {
                   {taskInstance["task-status"] === "Completed" && (
                     <p className="mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded">
                       <pre>{JSON.stringify(dataDetail, null, 2)}</pre>
-                      <pre>{"BMI: " + bmiResult}</pre>
+                      {bmiResult && <pre>{"BMI: " + bmiResult}</pre>}
                     </p>
                   )}
                 </>

@@ -1,6 +1,7 @@
 "use client";
 
-import { fetchDefinitions, startNewProcessInstance } from "@/utils";
+import { fetchDefinitions, startNewProcessInstance, username } from "@/utils";
+import { redirect } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
 export default function Home() {
@@ -9,6 +10,10 @@ export default function Home() {
   >([]);
   const [isStart, setIsStart] = useState(false);
   const [name, setName] = useState("");
+
+  if (username != "wbadmin") {
+    redirect("/task");
+  }
 
   useEffect(() => {
     getProcessDefinitions();
